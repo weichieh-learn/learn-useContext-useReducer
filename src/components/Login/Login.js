@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer, useContext } from 'react'
+import React, { useState, useEffect, useReducer, useContext, useRef } from 'react'
 
 import Card from '../UI/Card/Card'
 import classes from './Login.module.css'
@@ -44,6 +44,9 @@ const Login = () => {
   const { isValid: emailIsValid } = emailState
   const { isValid: passwordIsValid } = passwordState
 
+  const emailInputRef = useRef()
+  const passwordInputRef = useRef()
+
   useEffect(() => {
     // debounce:例如在使用者停止輸入的時候，才去檢查email是否包含@，而不是正在輸入的時候就一直去檢查
     // 此時是只有在email和password valid有改變的時候才去重新執行
@@ -88,13 +91,21 @@ const Login = () => {
 
   const submitHandler = (event) => {
     event.preventDefault()
-    authCtx.onLogin(emailState.value, passwordState.value)
+    if(formIsValid) {
+      authCtx.onLogin(emailState.value, passwordState.value)
+    } else if (!emailIsValid) {
+      // 因為在Input.js裡面useImperativeHandle是叫focus
+      emailInputRef.current.focus()
+    } else {
+      passwordInputRef.current.focus()
+    }
   }
 
   return (
     <Card className={classes.login}>
       <form onSubmit={submitHandler}>
         <Input
+          ref={emailInputRef}
           id="email"
           type="email"
           label="E-Mail"
@@ -105,6 +116,7 @@ const Login = () => {
         />
 
         <Input
+          ref={passwordInputRef}
           id="password"
           type="password"
           label="Password"
@@ -115,7 +127,7 @@ const Login = () => {
         />
 
         <div className={classes.actions}>
-          <Button type="submit" className={classes.btn} disabled={!formIsValid}>
+          <Button type="submit" className={classes.btn} >
             Login
           </Button>
         </div>
